@@ -277,10 +277,6 @@ For a pull request, fork the repository, create a focused branch from `main`, ma
 
 Useful areas to contribute include terminal interaction, squash-merge evidence, Jev assessment quality, platform support, and examples. Please keep each PR focused and include behavior tests for changes to cleanup or recovery.
 
-## Publishing and license
+## License
 
-PyPI is optional for using this CLI: `uv tool install .` already installs a standalone command. Once a release is published under the `gitomb` package name, users will be able to run `uv tool install gitomb` or `uvx gitomb --help`. Until then, use the source installation above.
-
-Publishing is a separate, explicit operation, not part of installation or testing.
-
-A project license has not yet been selected. The maintainer needs to add `LICENSE` and matching package metadata before the first public release.
+Licensed under the [MIT License](https://github.com/PaulChen79/gitomb/blob/main/LICENSE).
