@@ -18,25 +18,23 @@ No API key is required for Git-only scans.
 
 Requires **Python 3.11+, Git, [uv](https://docs.astral.sh/uv/getting-started/installation/), and macOS or Linux**. Windows is not supported yet because cleanup uses POSIX file locks.
 
-This version is currently distributed from source. The project has not published this release to PyPI.
-
-### 1. Install from source
+### 1. Install
 
 ```bash
-git clone https://github.com/PaulChen79/gitomb.git
-cd gitomb
-uv sync --locked
-uv run gitomb --help
-uv run gitomb scan /path/to/your/repo --no-ai
+uv tool install gitomb
+gitomb --help
+gitomb scan /path/to/your/repo --no-ai
 ```
 
-Replace `/path/to/your/repo` with a repository you want to inspect. If you already have a checkout, start at `uv sync --locked`.
+Replace `/path/to/your/repo` with a repository you want to inspect. If your shell cannot find `gitomb`, run `uv tool update-shell` and restart the terminal.
+
+To upgrade, run `uv tool upgrade gitomb`. To uninstall, run `uv tool uninstall gitomb`.
 
 Scanning does not delete, fetch, or check out anything. It saves a report for subsequent `show` and `clean` commands.
 
 ### 2. Enable Jev assessments (optional)
 
-Get an API key from [TypeSafe](https://console.typesafe.ai/). Create or edit `.env` in the gitomb checkout:
+Get an API key from [TypeSafe](https://console.typesafe.ai/). Create or edit `.env` in the directory where you will run gitomb:
 
 ```dotenv
 TYPESAFE_API_KEY=your-api-key
@@ -45,12 +43,12 @@ TYPESAFE_API_KEY=your-api-key
 Then scan with Jev:
 
 ```bash
-uv run gitomb scan /path/to/your/repo --ai
+gitomb scan /path/to/your/repo --ai
 ```
 
 An existing `TYPESAFE_API_KEY` environment variable takes precedence over `.env`. The default `.env` is read from the **directory where you run the command**, not from each scanned repository. Use `--env-file /path/to/.env` for a different location.
 
-`.env` is excluded from Git. Do not commit your key. Jev calls use your own TypeSafe account quota.
+Keep `.env` out of version control. The gitomb source repository already ignores it; configure your own repository accordingly. Do not commit your key. Jev calls use your own TypeSafe account quota.
 
 | Mode | Behavior |
 | --- | --- |
@@ -58,27 +56,26 @@ An existing `TYPESAFE_API_KEY` environment variable takes precedence over `.env`
 | `--no-ai` | Use local Git evidence only; make no Jev requests |
 | `--ai` | Require a key; individual API failures still fall back to Git rules |
 
-### 3. Install a standalone command (optional)
-
-From the gitomb checkout:
+### Install from source instead
 
 ```bash
+git clone https://github.com/PaulChen79/gitomb.git
+cd gitomb
+uv sync --locked
 uv tool install .
 gitomb scan /path/to/your/repo --env-file /path/to/gitomb/.env
 ```
 
-If your shell cannot find `gitomb`, run `uv tool update-shell` and restart the terminal. After updating the source checkout, reinstall with `uv tool install --reinstall .`. To uninstall, run `uv tool uninstall gitomb`.
-
-The examples below use `uv run gitomb` from the checkout. After a standalone installation, use `gitomb` instead.
+After updating the source checkout, reinstall with `uv tool install --reinstall .`. The examples below use the standalone `gitomb` command.
 
 ## Usage
 
 ### Scan one or more repositories
 
 ```bash
-uv run gitomb scan ~/projects ~/work --no-ai
-uv run gitomb scan /path/to/repo --base develop
-uv run gitomb scan /path/to/repo --ai --include-diff
+gitomb scan ~/projects ~/work --no-ai
+gitomb scan /path/to/repo --base develop
+gitomb scan /path/to/repo --ai --include-diff
 ```
 
 Without a path, gitomb scans the current directory. Discovery searches six directory levels by default, deduplicates linked worktrees, skips directories such as `.git`, `.venv`, and `node_modules`, and does not follow directory symlinks.
@@ -98,9 +95,9 @@ Saved: .../gitomb/scans/20260923T080000Z-abcd1234.json
 ### Review the report and diffs
 
 ```bash
-uv run gitomb show
-uv run gitomb show ITEM_ID --diff
-uv run gitomb show ITEM_ID --scan SCAN_ID --diff
+gitomb show
+gitomb show ITEM_ID --diff
+gitomb show ITEM_ID --scan SCAN_ID --diff
 ```
 
 Replace `ITEM_ID` with an ID from the report; unique prefixes are accepted. `show --diff` displays the full diff locally without sending it to Jev.
@@ -110,7 +107,7 @@ Replace `ITEM_ID` with an ID from the report; unique prefixes are accepted. `sho
 ### Select and confirm cleanup
 
 ```bash
-uv run gitomb clean
+gitomb clean
 ```
 
 Enter comma-separated **row numbers**, such as `1,3`. Review the selected items, then type `clean 2` to confirm two deletions. An empty selection cancels. Protected branches and branches in use by a worktree cannot be removed.
@@ -118,14 +115,14 @@ Enter comma-separated **row numbers**, such as `1,3`. Review the selected items,
 For explicit selection, use item IDs. Preview the operation first:
 
 ```bash
-uv run gitomb clean --ids ITEM_ID ANOTHER_ID --dry-run
-uv run gitomb clean --ids ITEM_ID ANOTHER_ID
+gitomb clean --ids ITEM_ID ANOTHER_ID --dry-run
+gitomb clean --ids ITEM_ID ANOTHER_ID
 ```
 
 Branches with commits not reachable from the comparison branch require an additional flag:
 
 ```bash
-uv run gitomb clean --ids ITEM_ID --allow-unmerged
+gitomb clean --ids ITEM_ID --allow-unmerged
 ```
 
 `--allow-unmerged` does not bypass branch protection, worktree checks, or confirmation. Stashes always require your review, but do not use the branch-specific `--allow-unmerged` flag.
@@ -135,8 +132,8 @@ uv run gitomb clean --ids ITEM_ID --allow-unmerged
 ### Restore a batch
 
 ```bash
-uv run gitomb batches
-uv run gitomb restore BATCH_ID
+gitomb batches
+gitomb restore BATCH_ID
 ```
 
 Use the batch ID printed by `clean`. Restoration recreates branches and adds stashes back to the stash list. It does **not** apply stashes to your working tree.
@@ -195,10 +192,10 @@ Assessments are cached by model name and input. Use `--refresh` to bypass the ca
 ## Configuration
 
 ```bash
-uv run gitomb scan --config gitomb.example.toml
-uv run gitomb scan ~/projects --no-ai --json > scan.json
-uv run gitomb --state-dir .gitomb scan /path/to/repo --no-ai
-uv run gitomb --state-dir .gitomb clean
+gitomb scan --config gitomb.example.toml
+gitomb scan ~/projects --no-ai --json > scan.json
+gitomb --state-dir .gitomb scan /path/to/repo --no-ai
+gitomb --state-dir .gitomb clean
 ```
 
 Configuration files are loaded only when supplied through `--config`. See [gitomb.example.toml](https://github.com/PaulChen79/gitomb/blob/main/gitomb.example.toml).
@@ -256,6 +253,8 @@ Data files are created with owner-only read/write permissions. Keep both the jou
 | Restore reports a conflicting branch name | Resolve the name conflict, then retry the same batch |
 
 ## Development
+
+Clone the repository and run these commands from the checkout. To run source changes without reinstalling the standalone tool, use `uv run gitomb ...`.
 
 ```bash
 uv sync --locked

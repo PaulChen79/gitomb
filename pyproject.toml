@@ -12,6 +12,11 @@ license-files = ["LICENSE"]
 requires-python = ">=3.11"
 dependencies = ["rich>=13.9,<15", "typesafe-sdk>=0.7.1,<0.8", "pydantic>=2,<3", "python-dotenv>=1,<2"]
 
+[project.urls]
+Repository = "https://github.com/PaulChen79/gitomb"
+Issues = "https://github.com/PaulChen79/gitomb/issues"
+Documentation = "https://github.com/PaulChen79/gitomb#readme"
+
 [project.scripts]
 gitomb = "gitomb.cli:main"
 
