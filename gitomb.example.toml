@@ -1,0 +1,5 @@
+roots = ["~/project"]
+protect = ["production", "staging", "hotfix/*"]
+stale_days = 90
+max_depth = 6
+model = "jev-latest"
