@@ -34,21 +34,57 @@ Scanning does not delete, fetch, or check out anything. It saves a report for su
 
 ### 2. Enable Jev assessments (optional)
 
-Get an API key from [TypeSafe](https://console.typesafe.ai/). Create or edit `.env` in the directory where you will run gitomb:
+After installing with `uv tool install gitomb`, you do not need to clone this repository or put a key inside uv's installation directory. Get an API key from [TypeSafe](https://console.typesafe.ai/) and choose one of the following methods.
+
+#### Recommended: keep the key in one file in your home directory
+
+Create a private configuration file:
+
+```bash
+mkdir -p "$HOME/.config/gitomb"
+touch "$HOME/.config/gitomb/.env"
+chmod 600 "$HOME/.config/gitomb/.env"
+```
+
+Open `~/.config/gitomb/.env` in your text editor and add:
 
 ```dotenv
 TYPESAFE_API_KEY=your-api-key
 ```
 
-Then scan with Jev:
+Then run this from any directory:
 
 ```bash
+gitomb scan /path/to/your/repo --ai --env-file "$HOME/.config/gitomb/.env"
+```
+
+**The home-directory file is not loaded automatically. Pass `--env-file` on each scan that should use it.** You can scan multiple repositories with the same key file:
+
+```bash
+gitomb scan ~/projects ~/work --ai --env-file "$HOME/.config/gitomb/.env"
+```
+
+#### Alternative: set an environment variable
+
+```bash
+export TYPESAFE_API_KEY='your-api-key'
 gitomb scan /path/to/your/repo --ai
 ```
 
-An existing `TYPESAFE_API_KEY` environment variable takes precedence over `.env`. The default `.env` is read from the **directory where you run the command**, not from each scanned repository. Use `--env-file /path/to/.env` for a different location.
+This applies to the current shell session. To make it available in future sessions, add the export to the appropriate shell startup file, such as `~/.zshrc` for zsh or `~/.bashrc` for interactive bash, then reload that file or open a new terminal. With the environment variable set, you do not need `--env-file`.
 
-Keep `.env` out of version control. The gitomb source repository already ignores it; configure your own repository accordingly. Do not commit your key. Jev calls use your own TypeSafe account quota.
+#### Alternative: use a local `.env`
+
+You can also place `TYPESAFE_API_KEY=your-api-key` in `.env` in the **directory where you run the command**. gitomb reads that file by default. For example, running from your home directory reads `~/.env`, even if the scan target is `/path/to/your/repo`.
+
+Key lookup order is:
+
+1. A nonempty `TYPESAFE_API_KEY` environment variable.
+2. The file supplied through `--env-file`, or `.env` in the current directory when the flag is omitted.
+
+gitomb does not search each scanned repository for a key and does not automatically read `~/.config/gitomb/.env`. `show`, `clean`, `batches`, and `restore` use saved data and do not require a key.
+
+Keep key files out of version control. The gitomb source repository already ignores `.env`; configure your own repository accordingly if using a local file. Jev calls use your own TypeSafe account quota.
 
 | Mode | Behavior |
 | --- | --- |
